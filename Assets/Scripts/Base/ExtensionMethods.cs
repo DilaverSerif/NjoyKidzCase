@@ -59,7 +59,7 @@ public static class ExtensionMethods
         return sb.ToString();
     }
     
-    private static T Raycast<T>(this T gen,Vector3 pos,LayerMask masks) where T:MonoBehaviour
+    public static T Raycast<T>(Vector3 pos,LayerMask masks) where T:MonoBehaviour
     {
         RaycastHit hit;
         Ray ray = Camera.main.ScreenPointToRay(pos);
@@ -67,6 +67,19 @@ public static class ExtensionMethods
         if (Physics.Raycast(ray, out hit, Mathf.Infinity, masks))
         {
             return hit.transform.GetComponent<T>();
+        }
+
+        return default(T);
+    }
+    
+    public static T Raycast2D<T>(Vector3 pos) where T:MonoBehaviour
+    {
+        RaycastHit2D hit;
+        hit = Physics2D.Raycast(pos, Vector3.forward);
+        
+        if (hit.collider)
+        {
+            return hit.collider.transform.GetComponent<T>();
         }
 
         return default(T);
