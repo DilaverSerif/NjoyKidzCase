@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Lean.Touch;
 using UnityEngine;
 
 public class GridManager : MonoBehaviour
@@ -15,20 +14,15 @@ public class GridManager : MonoBehaviour
         CreateCells();
         SetCameraByGridSize();
     }
-    
+
     private void OnEnable()
     {
-        LeanTouch.OnFingerDown += OnFingerDown;
+       Player.OnClickCell += CheckCells;
     }
-    
+
     private void OnDisable()
     {
-        LeanTouch.OnFingerDown -= OnFingerDown;
-    }
-    
-    private void OnFingerDown(LeanFinger obj)
-    {
-        CheckCells(obj.GetWorldPosition(DistanceZ));
+        Player.OnClickCell -= CheckCells;
     }
 
     private void CreateCells()
@@ -50,7 +44,7 @@ public class GridManager : MonoBehaviour
     {
         var cell = ExtensionMethods.Raycast2D<Cell>(pos);
         
-        if(!cell) return;
+        if(!cell || cell.isX) return;
         
         cell.OpenX();
         
@@ -121,23 +115,27 @@ public static class GridExtension
                 if (cellPos + new Vector3(0, y, 0) != _cell.transform.position) continue;
                 
                 var cellCheck = ExtensionMethods.Raycast2D<Cell>(cellPos + new Vector3(0, y, 0));
+                if (!cellCheck) return cellList;
                 
                 if (cellCheck.isX)
                 {
-                    if(!cellList.Contains(cellCheck))
-                        cellList.Add(cellCheck);
+                    cellList.Add(cellCheck);
                     
                     //Bir birim ilerisini kontrol et
                     cellCheck = ExtensionMethods.Raycast2D<Cell>(cellPos + new Vector3(0, y * 2, 0)); 
-                    if (cellCheck.isX & !cellList.Contains(cellCheck))
+                    if (!cellCheck) return cellList;
+                    
+                    if (cellCheck.isX)
                     {
                         cellList.Add(cellCheck);
                         if(cellList.Count == 3) break;
                     }
                     
                     //Tam tersini kontrol et
-                    cellCheck = ExtensionMethods.Raycast2D<Cell>(cellPos + new Vector3(0, y * -1, 0)); 
-                    if (cellCheck.isX & !cellList.Contains(cellCheck))
+                    cellCheck = ExtensionMethods.Raycast2D<Cell>(cellPos + new Vector3(0, y * -1, 0));
+                    if (!cellCheck) return cellList;
+                    
+                    if (cellCheck.isX)
                         cellList.Add(cellCheck);
                 }
             }
@@ -160,13 +158,16 @@ public static class GridExtension
                 if (cellPos + new Vector3(x, 0, 0) != _cell.transform.position) continue;
                 
                 var cellCheck = ExtensionMethods.Raycast2D<Cell>(cellPos + new Vector3(x, 0, 0));
+                if (!cellCheck) return cellList;
                 
                 if(cellCheck.isX)
                 {
                     cellList.Add(cellCheck);
                     
                     //Bir birim ilerisini kontrol et
-                    cellCheck = ExtensionMethods.Raycast2D<Cell>(cellPos + new Vector3(x * 2, 0, 0)); 
+                    cellCheck = ExtensionMethods.Raycast2D<Cell>(cellPos + new Vector3(x * 2, 0, 0));
+                    if (!cellCheck) return cellList;
+                    
                     if (cellCheck.isX)
                     {
                         cellList.Add(cellCheck);
@@ -175,6 +176,8 @@ public static class GridExtension
                         
                     //Tam tersini kontrol et
                     cellCheck = ExtensionMethods.Raycast2D<Cell>(cellPos + new Vector3(x * -1, 0, 0)); 
+                    if (!cellCheck) return cellList;
+                    
                     if (cellCheck.isX)
                         cellList.Add(cellCheck);
                 }
@@ -191,9 +194,11 @@ public static class GridExtension
         foreach (var _cell in cells)
         {
             if(cellList.Count == 3) break;
+            cellList = new List<Cell> { cell };
 
             for (int x = -1; x < 2; x++)
             {
+                
                 for (int y = -1; y < 2; y++)
                 {
                     if(cellList.Count == 3) break;
@@ -201,6 +206,7 @@ public static class GridExtension
                     if (cellPos +  new Vector3(x, y, 0) != _cell.transform.position) continue;
                     
                     var cellCheck = ExtensionMethods.Raycast2D<Cell>(cellPos + new Vector3(x, y, 0));
+                    if (!cellCheck) return cellList;
                     
                     if (cellCheck.isX)
                     {
@@ -208,15 +214,18 @@ public static class GridExtension
                         
                         //Bir birim ilerisini kontrol et
                         cellCheck = ExtensionMethods.Raycast2D<Cell>(cellPos + new Vector3(x * 2, y * 2, 0)); 
+                        if (!cellCheck) return cellList;
+                        
                         if (cellCheck.isX)
                         {
                             cellList.Add(cellCheck);
                             if(cellList.Count == 3) break;
-
                         }
                         
                         //Tam tersini kontrol et
                         cellCheck = ExtensionMethods.Raycast2D<Cell>(cellPos + new Vector3(x * -1, y * -1, 0)); 
+                        if (!cellCheck) return cellList;
+                        
                         if (cellCheck.isX)
                             cellList.Add(cellCheck);
                     }
